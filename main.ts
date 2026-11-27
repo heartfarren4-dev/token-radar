@@ -7,8 +7,9 @@
 // judge reads, with the vendored make.fun library.
 //
 // The dashboard is a static page, no framework and no network: dashboard/index.html, app.css and
-// app.js read /output/data.js, which this program writes from the same board. The board carries all
-// 289 rankable pre-token protocols, each with its model breakdown and a seven-step farm plan.
+// app.js read /output/data.js, which this program writes from the same board. The board carries
+// every rankable pre-token protocol: the watchlist plus every rankable protocol below the floor,
+// each with its model breakdown and a seven-step farm plan.
 //
 // Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts --input ../input/snapshot.json
