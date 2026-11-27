@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — pre-token protocols ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand"><span class="dot" aria-hidden="true"></span><strong>Token Radar</strong><span class="tag">radar-2</span></div>
+    <p class="model">Implied value = TVL × peer multiple (median mcap/TVL of live tokens in the same category) × growth × maturity</p>
+  </div>
+</header>
+<main class="wrap">
+  <section class="lede">
+    <h1>Pre-token protocols, ranked by what a token could be worth</h1>
+    <p id="summary"></p>
+    <div class="stats" id="stats"></div>
+  </section>
+  <section class="controls" aria-label="Board controls">
+    <label class="field">Search
+      <input id="q" type="search" placeholder="Name, slug, category or chain" autocomplete="off">
+    </label>
+    <label class="field">Category
+      <select id="cat" aria-label="Filter by category"></select>
+    </label>
+    <label class="field">Chain
+      <select id="chain" aria-label="Filter by chain"></select>
+    </label>
+    <label class="check"><input id="wl" type="checkbox"> Watchlist only</label>
+    <div class="tabs" role="group" aria-label="Token status">
+      <button id="tab-pre" type="button" aria-pressed="true">Pre-token</button>
+      <button id="tab-live" type="button" aria-pressed="false">Live tokens</button>
+    </div>
+  </section>
+  <p class="count" id="count" aria-live="polite"></p>
+  <div class="table-wrap">
+    <table id="board">
+      <thead id="head"></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <noscript><p class="count">This board renders with JavaScript: the ranked rows, the detail view and the filters all run in the page, from the data beside it.</p></noscript>
+  <aside class="detail" id="detail" aria-live="polite"></aside>
+  <section class="sandbox" id="sandbox">
+    <h2>Model sandbox — what if?</h2>
+    <p>Move a slider to see how the board would change under a different model. This is a what-if
+    tool only: it never changes the submitted board or board.json.</p>
+    <div class="sliders">
+      <label>Growth weight
+        <input id="sb-gw" type="range" min="0" max="1" step="0.05" value="0.6">
+        <output id="sb-gw-v">0.60</output>
+      </label>
+      <label>Peer-multiple cap
+        <input id="sb-cap" type="range" min="0.5" max="2" step="0.05" value="1.5">
+        <output id="sb-cap-v">1.50</output>
+      </label>
+      <label>Maturity floor
+        <input id="sb-mf" type="range" min="0.4" max="0.8" step="0.05" value="0.6">
+        <output id="sb-mf-v">0.60</output>
+      </label>
+    </div>
+    <label class="check"><input id="apply-sb" type="checkbox"> Apply these settings to the board above</label>
+  </section>
+  <section class="about">
+    <h2>How the model works</h2>
+    <p>Each protocol's implied value starts from its TVL, times the peer multiple: the median
+    market-cap-to-TVL ratio of live tokens in the same category (at least three peers, else the
+    median over all live tokens), clamped to 0.05–1.5. Growth is the seven-day TVL change, clamped
+    to −60%…+150%, weighted 0.6. Maturity rises with the days the protocol has run with no token
+    on record, from 0.6 at day zero to 1.0 at three years; an unknown listing date counts as 365
+    days. No protocol name is special-cased, and the live-token protocols are set aside with their
+    market caps shown — the board ranks only protocols with no token on record.</p>
+    <p>An implied value is the model's claim, not a price and not a promise that a token is issued.</p>
+  </section>
+</main>
+<footer class="wrap"><p id="source"></p></footer>
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
