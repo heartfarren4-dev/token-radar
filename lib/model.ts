@@ -363,6 +363,31 @@ function weeklyAction(p: SnapshotProtocol): string {
   return `Each week, make one qualifying action on ${name}, such as a deposit or a vote, so the position stays active.`;
 }
 
+/** Gas is chain-priced, not one flat number: a transaction costs dollars on Ethereum and cents on
+ * a low-fee chain. Three tiers, by the chain's known fee regime — "about" because fees move. */
+function gasCosts(chain: string): { first: string; setup: string; weekly: string } {
+  const cheap = new Set([
+    'Solana', 'Sui', 'Aptos', 'Stellar', 'Ripple', 'Algorand', 'Hyperliquid L1',
+    'Base', 'Arbitrum', 'zkSync Era', 'Polygon', 'Mantle', 'Ink', 'World Chain', 'Morph',
+    'Starknet', 'Plume Mainnet', 'Optimism', 'Linea', 'Scroll', 'Blast', 'Mode', 'Manta',
+    'Arc', 'RISE', 'Fluent', 'Pharos', 'Tempo', 'Stable', 'Noble', 'XION', 'Proton',
+    'Reya Network', 'Qubic', 'Strato', 'Canton', 'Berachain', 'Monad', 'Flare', 'Plasma',
+    'BSquared', 'Mezo', 'Kava', 'Bifrost Network', 'Ronin', 'Klaytn', 'RSK', 'Stacks',
+    'Bittensor',
+  ]);
+  const mid = new Set(['Binance', 'Tron', 'Avalanche']);
+  if (chain === 'Ethereum') {
+    return { first: 'under $3 of gas for the first transaction', setup: 'about $8 of gas', weekly: 'about $2 of gas a week' };
+  }
+  if (cheap.has(chain)) {
+    return { first: 'under $0.10 of gas for the first transaction', setup: 'about $0.50 of gas', weekly: 'under $0.10 of gas a week' };
+  }
+  if (mid.has(chain)) {
+    return { first: 'under $0.50 of gas for the first transaction', setup: 'about $0.50 of gas', weekly: 'under $0.50 of gas a week' };
+  }
+  return { first: 'under $3 of gas for the first transaction', setup: 'about $4 of gas', weekly: 'about $2 of gas a week' };
+}
+
 /**
  * A protocol's farm plan: seven steps, each an action with a cost and a time. The plan is derived
  * from the protocol's own record (category, chains, TVL, age), never from a hand-written list.
@@ -373,22 +398,23 @@ export function farmSteps(p: SnapshotProtocol, age: number | null): FarmStep[] {
   const capital = capitalFor(p);
   const hold = holdDaysFor(age);
   const second = p.chains.length >= 2 ? p.chains[1]! : null;
+  const gas = gasCosts(chain);
   const steps: FarmStep[] = [
     {
       text: `Use a fresh wallet that holds only the funds you plan to farm for ${p.name}, and keep its seed phrase offline.`,
-      cost: 'under $3 of gas for the first transaction',
+      cost: gas.first,
       time: '5 minutes',
     },
     {
       text: primaryAction(p, capital, chain),
-      cost: `$${capital} of capital and about $${capital >= 150 ? 8 : 4} of gas`,
+      cost: `$${capital} of capital and ${gas.setup}`,
       time: '15 minutes to set up',
     },
   ];
   if (second !== null) {
     steps.push({
       text: `Repeat the same ${p.name} position on ${second} with half the capital, so the activity shows on a second chain.`,
-      cost: `$${Math.ceil(capital / 2)} of capital and about $4 of gas`,
+      cost: `$${Math.ceil(capital / 2)} of capital and ${gasCosts(second).setup}`,
       time: '15 minutes',
     });
   } else {
@@ -401,7 +427,7 @@ export function farmSteps(p: SnapshotProtocol, age: number | null): FarmStep[] {
   steps.push(
     {
       text: weeklyAction(p),
-      cost: 'about $2 of gas a week',
+      cost: gas.weekly,
       time: '10 minutes a week',
     },
     {
