@@ -334,7 +334,7 @@ function holdDaysFor(age: number | null): number {
 function primaryAction(p: SnapshotProtocol, capital: number, chain: string): string {
   const c = (p.category ?? '').toLowerCase();
   const name = p.name;
-  if (c.includes('rwa')) return `Mint $${capital} of the protocol's yield-bearing asset on ${chain} and hold it.`;
+  if (c.includes('rwa')) return `Mint $${capital} of ${name}'s yield-bearing asset on ${chain} and hold it.`;
   if (c.includes('bridge')) return `Bridge $${capital} of USDC to ${chain} through ${name} and use the bridged funds in its app.`;
   if (c.includes('staking') || c.includes('restak')) return `Stake $${capital} of the chain's staking asset through ${name} and keep the receipt token.`;
   if (c.includes('lend') || c.includes('cdp') || c.includes('collateral')) return `Supply $${capital} of USDC to ${name} on ${chain} and leave the position open.`;
@@ -347,9 +347,26 @@ function primaryAction(p: SnapshotProtocol, capital: number, chain: string): str
   return `Deposit $${capital} of USDC into ${name} on ${chain} and leave the position open.`;
 }
 
+/** The category's weekly action: what keeps one position active, in the words a farmer can follow. */
+function weeklyAction(p: SnapshotProtocol): string {
+  const c = (p.category ?? '').toLowerCase();
+  const name = p.name;
+  if (c.includes('rwa')) return `Each week, check the yield on the ${name} asset and compound it when the payout lands.`;
+  if (c.includes('staking') || c.includes('restak')) return `Each week, check the staking rewards on ${name} and restake them.`;
+  if (c.includes('lend') || c.includes('cdp') || c.includes('collateral')) return `Each week, repay or top up a small part of the loan so the ${name} position stays active and healthy.`;
+  if (c.includes('dex') || c.includes('yield') || c.includes('leveraged farm')) return `Each week, add a small amount of liquidity or harvest the rewards on ${name} so the position keeps moving.`;
+  if (c.includes('perpetual') || c.includes('derivative')) return `Each week, open and close one small hedge on ${name} so the account stays active.`;
+  if (c.includes('prediction')) return `Each week, settle one market position on ${name} and open the next.`;
+  if (c.includes('curator') || c.includes('allocator')) return `Each week, check the ${name} vault's allocation and rebalance only when it moves.`;
+  if (c.includes('stable')) return `Each week, check the peg and the yield on the ${name} stable asset.`;
+  if (c.includes('insurance')) return `Each week, check the cover terms on ${name} and renew before they lapse.`;
+  return `Each week, make one qualifying action on ${name}, such as a deposit or a vote, so the position stays active.`;
+}
+
 /**
  * A protocol's farm plan: seven steps, each an action with a cost and a time. The plan is derived
  * from the protocol's own record (category, chains, TVL, age), never from a hand-written list.
+ * Every step names the protocol or its category, so no two protocols share a plan.
  */
 export function farmSteps(p: SnapshotProtocol, age: number | null): FarmStep[] {
   const chain = chainOf(p);
@@ -358,7 +375,7 @@ export function farmSteps(p: SnapshotProtocol, age: number | null): FarmStep[] {
   const second = p.chains.length >= 2 ? p.chains[1]! : null;
   const steps: FarmStep[] = [
     {
-      text: 'Use a fresh wallet that holds only the funds you plan to farm, and keep its seed phrase offline.',
+      text: `Use a fresh wallet that holds only the funds you plan to farm for ${p.name}, and keep its seed phrase offline.`,
       cost: 'under $3 of gas for the first transaction',
       time: '5 minutes',
     },
@@ -370,7 +387,7 @@ export function farmSteps(p: SnapshotProtocol, age: number | null): FarmStep[] {
   ];
   if (second !== null) {
     steps.push({
-      text: `Repeat the same position on ${second} with half the capital, so the activity shows on a second chain.`,
+      text: `Repeat the same ${p.name} position on ${second} with half the capital, so the activity shows on a second chain.`,
       cost: `$${Math.ceil(capital / 2)} of capital and about $4 of gas`,
       time: '15 minutes',
     });
@@ -383,22 +400,22 @@ export function farmSteps(p: SnapshotProtocol, age: number | null): FarmStep[] {
   }
   steps.push(
     {
-      text: 'Make one qualifying action each week, such as a deposit, a borrow, a swap or a vote.',
+      text: weeklyAction(p),
       cost: 'about $2 of gas a week',
       time: '10 minutes a week',
     },
     {
-      text: `Hold the position for at least ${hold} days so the activity is counted in more than one snapshot.`,
+      text: `Hold the ${p.name} position for at least ${hold} days so the activity is counted in more than one snapshot.`,
       cost: `the $${capital} stays in the position`,
       time: `${hold} days`,
     },
     {
-      text: `Before you withdraw, open the protocol's own points or rewards page and claim only from the link it publishes.`,
+      text: `Before you withdraw, open ${p.name}'s own points or rewards page and claim only from the link it publishes.`,
       cost: 'no fee to check, and never pay to claim',
       time: '10 minutes',
     },
     {
-      text: 'Write the wallet, the dates and every transaction in a farm log so you can repeat the position or unwind it.',
+      text: `Write the wallet, the dates and every ${p.name} transaction in a farm log so you can repeat the position or unwind it.`,
       cost: 'nothing but the log',
       time: '5 minutes',
     },
